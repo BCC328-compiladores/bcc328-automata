@@ -1,1 +1,0 @@
-rodrigo@Thinkpad.12249:1697445918

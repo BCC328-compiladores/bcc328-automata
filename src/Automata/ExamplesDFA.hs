@@ -26,7 +26,7 @@ numberDFA
         | isDigit c = Just True
         | otherwise = Nothing
       numberTrans _ _ = Nothing
-      
+ 
 -- recognizing if keyword
 
 ifDFA :: DFA (Maybe Int)
