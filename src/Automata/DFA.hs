@@ -4,6 +4,7 @@ module Automata.DFA ( DFA (..)
                     , longest
                     , unionDFA
                     , intersectionDFA
+                    , lexer
                     ) where
 
 -- definition of a deterministic finite automata
@@ -14,7 +15,6 @@ data DFA a
     , delta :: a -> Char -> a
     , finals :: a -> Bool
     } 
-
 
 -- producing the resulting state
 
@@ -28,32 +28,30 @@ accept m s = finals m (deltaStar m s)
 
 -- longest match
 
-longest :: DFA a -> String -> Maybe String
-longest m = combine . foldl step (Just "", Nothing, start m)
-  where
-    step (Just pre, Nothing, e) c
-      | finals m (delta m e c)
-          = ( Just (c : pre)
-            , Just (c : pre)
-            , delta m e c)
-      | otherwise
-          = ( Just (c : pre)
-            , Nothing
-            , delta m e c)
-    step (Just pre, Just pre', e) c
-      | finals m (delta m e c)
-          = ( Just (c : pre)
-            , Just (c : pre')
-            , delta m e c)
-      | otherwise = ( Nothing
-                    , Just pre'
-                    , delta m e c)
-    step (Nothing, val, e) c = ( Nothing
-                               , val
-                               , delta m e c)
+longest :: DFA a -> String -> Maybe (String, String)
+longest m s
+  = go (start m) (finals m (start m), Just "", Just  s)
+    where
+      go _ (True, Just pre, Just "") = Just (pre, "")
+      go _ (False, _, Just "") = Nothing
+      go e (True, Just pre, Just (c : cs))
+        | finals m (delta m e c) = go (delta m e c) (True, Just (c : pre), Just cs)
+        | otherwise   = Just (pre, (c : cs))
+      go e (False, Just pre, Just (c : cs))
+        | finals m (delta m e c) = go (delta m e c)(True, Just (c : pre), Just cs)
+        | otherwise = go (delta m e c) (False, Just (c : pre), Just cs) 
 
-    combine (_, val, _) = reverse <$> val
+-- lexing
 
+lexer :: DFA a -> (String -> Maybe [b]) -> String -> Maybe [b]
+lexer _ _ "" = return []
+lexer m action s
+  = do
+      (pref, suf) <- longest m s
+      token <- action (reverse pref)
+      tokens <- lexer m action suf
+      return (token ++ tokens)
+      
 -- product construction
 
 dfaProduct :: DFA a -> DFA b -> ((a,b) -> Bool) -> DFA (a, b)
