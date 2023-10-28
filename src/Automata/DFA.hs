@@ -39,7 +39,8 @@ longest m s
         | otherwise   = Just (pre, (c : cs))
       go e (False, Just pre, Just (c : cs))
         | finals m (delta m e c) = go (delta m e c)(True, Just (c : pre), Just cs)
-        | otherwise = go (delta m e c) (False, Just (c : pre), Just cs) 
+        | otherwise = go (delta m e c) (False, Just (c : pre), Just cs)
+      go _ _ = Nothing
 
 -- lexing
 
@@ -51,7 +52,7 @@ lexer m action s
       token <- action (reverse pref)
       tokens <- lexer m action suf
       return (token ++ tokens)
-      
+
 -- product construction
 
 dfaProduct :: DFA a -> DFA b -> ((a,b) -> Bool) -> DFA (a, b)

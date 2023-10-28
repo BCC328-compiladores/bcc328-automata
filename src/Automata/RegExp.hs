@@ -7,7 +7,7 @@ module Automata.RegExp ( Regex (..)
                        , starNFA
                        , thompson
                        , toDFA
-                       , lexer
+                       , lexer1
                        ) where
 
 import Data.Set (Set)
@@ -59,7 +59,7 @@ unionNFA m1 m2
       numberOfStates = n1 + n2
     , nfaStart = Set.union (nfaStart m1) (shift n1 (nfaStart m2))
     , nfaDelta = f
-    , nfaFinals = Set.union (nfaFinals m2) (shift n1 (nfaFinals m2))
+    , nfaFinals = Set.union (nfaFinals m1) (shift n1 (nfaFinals m2))
     }
     where
       n1 = numberOfStates m1
@@ -80,10 +80,11 @@ concatNFA m1 m2
       n2 = numberOfStates m2
       start1 = nfaStart m1
       final1 = nfaFinals m1
+      final2 = nfaFinals m2
       newStart = if disjoint start1 final1
                  then start1
                  else Set.union start1 (shift n1 final1)
-      newFinals = shift n1 final1
+      newFinals = shift n1 final2
       newDelta e c = if e < n1 then
                        if disjoint (nfaDelta m1 e c) final1
                        then nfaDelta m1 e c
@@ -120,5 +121,5 @@ thompson (Star e1)
 toDFA :: Regex -> DFA (Set Int)
 toDFA = subset . thompson
 
-lexer :: [Regex] -> DFA (Set Int)
-lexer = subset . foldr unionNFA emptyNFA . map thompson
+lexer1 :: [Regex] -> DFA (Set Int)
+lexer1 = subset . foldr unionNFA emptyNFA . map thompson
