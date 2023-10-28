@@ -79,16 +79,17 @@ concatNFA m1 m2
       n1 = numberOfStates m1
       n2 = numberOfStates m2
       start1 = nfaStart m1
+      start2 = nfaStart m2
       final1 = nfaFinals m1
       final2 = nfaFinals m2
-      newStart = if disjoint start1 final1
+      newStart = if disjoint start1 start2
                  then start1
-                 else Set.union start1 (shift n1 final1)
+                 else Set.union start1 (shift n1 start2)
       newFinals = shift n1 final2
       newDelta e c = if e < n1 then
                        if disjoint (nfaDelta m1 e c) final1
                        then nfaDelta m1 e c
-                       else Set.union (nfaDelta m1 e c) start1
+                       else Set.union (nfaDelta m1 e c) (shift n1 start1)
                      else shift n1 (nfaDelta m2 (e - n1) c)
 
 starNFA :: NFA Int -> NFA Int
